@@ -12,12 +12,13 @@ import (
 	"github.com/Shopify/sarama"
 )
 
-	var (
+var (
 	logger = log.New(os.Stderr, "", log.LstdFlags)
 )
 
-func ConsumeMessages(topic string, brokerList string, bufferSize int, offset string, partitions string) error {
+func ConsumeMessages(brokerList string, topic string, bufferSize int, offset string, partitions string) error {
 
+	fmt.Printf("topic: %s, brokers %s\n", topic, brokerList)
 
 	var initialOffset int64
 	switch offset {
@@ -91,7 +92,7 @@ func ConsumeMessages(topic string, brokerList string, bufferSize int, offset str
 		logger.Println("Failed to close consumer: ", err)
 	}
 	return nil
-	
+
 }
 
 func getPartitions(topic string, partitions string, c sarama.Consumer) ([]int32, error) {
@@ -117,4 +118,3 @@ func printErrorAndExit(code int, format string, values ...interface{}) {
 	fmt.Fprintln(os.Stderr)
 	os.Exit(code)
 }
-
