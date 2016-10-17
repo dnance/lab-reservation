@@ -6,12 +6,11 @@ import (
 	"log"
 	"os"
 
-	"github.com/Shopify/sarama"
-	//"github.com/rcrowley/go-metrics"
 	"github.com/dnance/lab-reservation/pkg/common"
 )
 
 var (
+	Type        = flag.String("Type", "simple", "The consumer. You can also set the KAFKA_PEERS environment variable")
 	brokerList  = flag.String("brokers", os.Getenv("KAFKA_PEERS"), "The comma separated list of brokers in the Kafka cluster. You can also set the KAFKA_PEERS environment variable")
 	topic       = flag.String("topic", "", "REQUIRED: the topic to produce to")
 	key         = flag.String("key", "", "The key of the message to produce. Can be empty.")
@@ -30,6 +29,8 @@ var (
 )
 
 func main() {
+	fmt.Printf("lab-reservation")
+
 	flag.Parse()
 
 	if *brokerList == "" {
@@ -38,10 +39,6 @@ func main() {
 
 	if *topic == "" {
 		printUsageErrorAndExit("no -topic specified")
-	}
-
-	if *verbose {
-		sarama.Logger = logger
 	}
 
 	fmt.Printf("action: %s\n", *action)
@@ -53,6 +50,17 @@ func main() {
 			os.Exit(-1)
 		}
 	} else if *action == "consume" {
+
+		if *Type == "simple" {
+			sc := &common.SimpleConsumer{}
+			err := sc.ConsumeMessages(*brokerList, *topic)
+			if err != nil {
+				fmt.Errorf("error")
+				os.Exit(1)
+			}
+			return
+		}
+
 		err := common.ConsumeMessages(*brokerList, *topic, *bufferSize, *offset, *partitions)
 		if err != nil {
 			fmt.Errorf("error consuming message")
@@ -76,7 +84,8 @@ func printUsageErrorAndExit(message string) {
 	os.Exit(64)
 }
 
-func stdinAvailable() bool {
+/*func stdinAvailable() bool {
 	stat, _ := os.Stdin.Stat()
 	return (stat.Mode() & os.ModeCharDevice) == 0
 }
+*/
