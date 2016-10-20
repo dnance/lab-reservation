@@ -1,24 +1,25 @@
 package common
 
 import (
-//"encoding/base64"
+	//"encoding/base64"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
-		"time"
+	"time"
 	//"github.com/tdhite/q3-training-journal/journal"
 )
 
 type SimpleConsumer struct {
+	DataManager string
 }
 
 func (sc *SimpleConsumer) saveReservation(msg *Message) {
 
-fmt.Printf("Sending reservation %s to data-manager\n", msg.ToJson())
-payload := string(msg.Base64[:])
-fmt.Printf("payload: %s\n", payload)
+	fmt.Printf("Sending reservation %s to data-manager at %s\n", msg.ToJson(), sc.DataManager)
+	payload := string(msg.Base64[:])
+	fmt.Printf("payload: %s\n", payload)
 
 }
 
@@ -28,13 +29,13 @@ func (sc *SimpleConsumer) handleMessages(messages <-chan *Message, topic string)
 			fmt.Printf("topic: %s", msg.ToJson())
 			fmt.Println()
 			if topic == "reservation" {
-			sc.saveReservation(msg)
+				sc.saveReservation(msg)
 			}
-			
+
 		}
 	}()
 
-return nil
+	return nil
 }
 
 func (sc *SimpleConsumer) consume(url string, topic string, listen chan bool) (<-chan *Message, error) {
@@ -87,10 +88,10 @@ func (sc *SimpleConsumer) ConsumeMessages(url string, topic string) error {
 
 	messages, _ := sc.consume(url, topic, listen)
 	err := sc.handleMessages(messages, topic)
-if err != nil {
-fmt.Errorf("%V", err)
-os.Exit(1)
-}
+	if err != nil {
+		fmt.Errorf("%V", err)
+		os.Exit(1)
+	}
 
 	for {
 		time.Sleep(time.Second * 15)

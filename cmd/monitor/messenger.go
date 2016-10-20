@@ -6,12 +6,13 @@ import (
 	"log"
 	"os"
 
-	"github.com/dnance/lab-reservation/pkg/common"
+	"github.com/vmtrain/queue-monitor/pkg/common"
 )
 
 var (
 	Type        = flag.String("Type", "simple", "The consumer. You can also set the KAFKA_PEERS environment variable")
 	brokerList  = flag.String("brokers", os.Getenv("KAFKA_PEERS"), "The comma separated list of brokers in the Kafka cluster. You can also set the KAFKA_PEERS environment variable")
+	dataManager = flag.String("datamanager", "", "The comma separated list of data managers . You can also set the KAFKA_PEERS environment variable")
 	topic       = flag.String("topic", "", "REQUIRED: the topic to produce to")
 	key         = flag.String("key", "", "The key of the message to produce. Can be empty.")
 	value       = flag.String("value", "", "REQUIRED: the value of the message to produce. You can also provide the value on stdin.")
@@ -41,6 +42,10 @@ func main() {
 		printUsageErrorAndExit("no -topic specified")
 	}
 
+	if *dataManager == "" {
+		printUsageErrorAndExit("no -topic specified")
+	}
+
 	fmt.Printf("action: %s\n", *action)
 
 	if *action == "produce" {
@@ -52,7 +57,7 @@ func main() {
 	} else if *action == "consume" {
 
 		if *Type == "simple" {
-			sc := &common.SimpleConsumer{}
+			sc := &common.SimpleConsumer{DataManager: *dataManager}
 			err := sc.ConsumeMessages(*brokerList, *topic)
 			if err != nil {
 				fmt.Errorf("error")
