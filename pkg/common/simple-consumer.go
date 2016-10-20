@@ -1,15 +1,40 @@
 package common
 
 import (
+//"encoding/base64"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"time"
+	"os"
+		"time"
 	//"github.com/tdhite/q3-training-journal/journal"
 )
 
 type SimpleConsumer struct {
+}
+
+func (sc *SimpleConsumer) saveReservation(msg *Message) {
+
+fmt.Printf("Sending reservation %s to data-manager\n", msg.ToJson())
+payload := string(msg.Base64[:])
+fmt.Printf("payload: %s\n", payload)
+
+}
+
+func (sc *SimpleConsumer) handleMessages(messages <-chan *Message, topic string) error {
+	go func() {
+		for msg := range messages {
+			fmt.Printf("topic: %s", msg.ToJson())
+			fmt.Println()
+			if topic == "reservation" {
+			sc.saveReservation(msg)
+			}
+			
+		}
+	}()
+
+return nil
 }
 
 func (sc *SimpleConsumer) consume(url string, topic string, listen chan bool) (<-chan *Message, error) {
@@ -61,12 +86,11 @@ func (sc *SimpleConsumer) ConsumeMessages(url string, topic string) error {
 	listen := make(chan bool, 1)
 
 	messages, _ := sc.consume(url, topic, listen)
-	go func() {
-		for msg := range messages {
-			fmt.Printf("topic: %s", msg.ToJson())
-			fmt.Println()
-		}
-	}()
+	err := sc.handleMessages(messages, topic)
+if err != nil {
+fmt.Errorf("%V", err)
+os.Exit(1)
+}
 
 	for {
 		time.Sleep(time.Second * 15)
